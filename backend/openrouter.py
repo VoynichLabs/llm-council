@@ -2,7 +2,7 @@
 
 import httpx
 from typing import List, Dict, Any, Optional
-from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL
+from .config import OPENROUTER_API_KEY, OPENROUTER_API_URL, REASONING_EFFORT
 
 
 async def query_model(
@@ -30,6 +30,10 @@ async def query_model(
         "model": model,
         "messages": messages,
     }
+
+    # Optional reasoning / thinking effort if provided
+    if REASONING_EFFORT:
+        payload["reasoning"] = {"effort": REASONING_EFFORT}
 
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:

@@ -11,16 +11,23 @@ LLM Council is a 3-stage deliberation system where multiple LLMs collaboratively
 ### Backend Structure (`backend/`)
 
 **`config.py`**
-- Contains `COUNCIL_MODELS` (list of OpenRouter model identifiers)
-- Contains `CHAIRMAN_MODEL` (model that synthesizes final answer)
-- Uses environment variable `OPENROUTER_API_KEY` from `.env`
-- 
+- `COUNCIL_MODELS`: List of OpenRouter model identifiers (current defaults below)
+- `CHAIRMAN_MODEL`: Model that synthesizes final answer (defaults to first council model)
+- `REASONING_EFFORT`: Sets thinking/reasoning level ("high", "medium", "low", "minimal"; defaults to "medium")
+- `OPENROUTER_API_KEY`: From environment variable in `.env`
+- All config values can be overridden via environment variables:
+  - `COUNCIL_MODELS`: Comma-separated list (e.g., `"anthropic/claude-haiku-4.5,openai/gpt-5-mini"`)
+  - `CHAIRMAN_MODEL`: Single model ID
+  - `REASONING_EFFORT`: Single value (high/medium/low/minimal/none)
 
 **`openrouter.py`**
-- `query_model()`: Single async model query
+- `query_model()`: Single async model query with thinking/reasoning support
 - `query_models_parallel()`: Parallel queries using `asyncio.gather()`
 - Returns dict with 'content' and optional 'reasoning_details'
 - Graceful degradation: returns None on failure, continues with successful responses
+- Reasoning/thinking: If `REASONING_EFFORT` is set, sends `{"reasoning": {"effort": value}}` to OpenRouter
+  - OpenRouter normalizes thinking across providers (OpenAI, Anthropic, Google, Grok, etc.)
+  - Reasoning appears in `response.reasoning_details` when supported by model
 
 **`council.py`** - The Core Logic
 - `stage1_collect_responses()`: Parallel queries to all council models
@@ -123,7 +130,65 @@ All backend modules use relative imports (e.g., `from .config import ...`) not a
 All ReactMarkdown components must be wrapped in `<div className="markdown-content">` for proper spacing. This class is defined globally in `index.css`.
 
 ### Model Configuration
-Models are hardcoded in `backend/config.py`. Chairman can be same or different from council members. The current default is Gemini as chairman per user preference.
+
+**Current Council Models** (as of Jan 2026):
+- `anthropic/claude-haiku-4.5` - Fast, efficient reasoning
+- `google/gemini-3-flash-preview` - Google's latest fast model
+- `openai/gpt-5-mini` - OpenAI's efficient GPT-5 variant
+- `x-ai/grok-4.1-fast` - Grok's fast variant with large context window
+
+**Chairman Model**: Defaults to `anthropic/claude-haiku-4.5` (first council member)
+
+**Reasoning/Thinking**:
+- All queries include `REASONING_EFFORT: "medium"` by default
+- OpenRouter normalizes thinking across all providers:
+  - OpenAI (gpt-5-*): Uses `reasoning.effort` with budget from `max_thinking_length`
+  - Anthropic (claude-*): Uses `reasoning.max_tokens` (1024-32k range)
+  - Google (gemini-*): Uses reasoning budget allocation
+  - Grok (grok-*): Uses thinking/reasoning when supported
+- Models that don't support thinking gracefully ignore the parameter
+- For higher-quality answers, increase `REASONING_EFFORT` to "high" via env var
+
+**Overriding Models**:
+Override via environment variables in `.env`:
+```
+COUNCIL_MODELS="openai/gpt-5-mini,anthropic/claude-haiku-4.5,google/gemini-3-flash-preview"
+CHAIRMAN_MODEL="openai/gpt-5-mini"
+REASONING_EFFORT="high"
+```
+
+To list available models on OpenRouter:
+```bash
+curl -s https://openrouter.ai/api/v1/models \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY" | jq '.data[].id'
+```
+
+## OpenRouter Integration Details
+
+### API Endpoint
+- Uses OpenRouter's `POST https://openrouter.ai/api/v1/chat/completions`
+- Normalizes model APIs (OpenAI, Anthropic, Google, Grok, etc.) under a single interface
+- Non-supported parameters are ignored per provider (graceful degradation)
+
+### Thinking/Reasoning Parameter
+```json
+{
+  "model": "openai/gpt-5-mini",
+  "messages": [...],
+  "reasoning": {
+    "effort": "medium"  // high, medium, low, minimal, or none
+  }
+}
+```
+
+- All models that support extended thinking accept this unified parameter
+- OpenRouter converts `effort` to provider-specific configurations internally
+- Reasoning output available in `response.reasoning_details` when model supports it
+
+### Response Parsing
+- Standard OpenAI-compatible response format
+- Reasoning blocks preserved in `message.reasoning_details` (array of thinking tokens)
+- These are captured and can be displayed in Stage 1 outputs if needed
 
 ## Common Gotchas
 
@@ -131,6 +196,8 @@ Models are hardcoded in `backend/config.py`. Chairman can be same or different f
 2. **CORS Issues**: Frontend must match allowed origins in `main.py` CORS middleware
 3. **Ranking Parse Failures**: If models don't follow format, fallback regex extracts any "Response X" patterns in order
 4. **Missing Metadata**: Metadata is ephemeral (not persisted), only available in API responses
+5. **Reasoning Budget**: Increased reasoning effort consumes more tokens; monitor usage if costs become an issue
+6. **Model Availability**: Always verify model IDs on OpenRouter before deployment; models change/deprecate frequently
 
 ## Future Enhancement Ideas
 

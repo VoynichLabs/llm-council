@@ -1,12 +1,16 @@
 .stage2 {
-  background: #fafafa;
+  background: var(--card);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
 }
 
 .stage2 h4 {
-  margin: 20px 0 8px 0;
-  color: #333;
+  margin: 18px 0 8px 0;
+  color: var(--ink);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .stage2 h4:first-of-type {
@@ -15,22 +19,22 @@
 
 .stage-description {
   margin: 0 0 12px 0;
-  color: #666;
+  color: var(--muted);
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .aggregate-rankings {
-  background: #f0f7ff;
+  background: #f4f7ff;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 20px;
-  border: 2px solid #d0e7ff;
+  border: 1px solid #d6e5ff;
 }
 
 .aggregate-rankings h4 {
   margin: 0 0 12px 0;
-  color: #2a7ae2;
+  color: var(--accent-strong);
   font-size: 15px;
 }
 
@@ -46,12 +50,13 @@
   gap: 12px;
   padding: 10px;
   background: #ffffff;
-  border-radius: 6px;
-  border: 1px solid #d0e7ff;
+  border-radius: 10px;
+  border: 1px solid #dbe4ff;
+  box-shadow: var(--shadow-soft);
 }
 
 .rank-position {
-  color: #2a7ae2;
+  color: var(--accent-strong);
   font-weight: 700;
   font-size: 16px;
   min-width: 35px;
@@ -59,14 +64,14 @@
 
 .rank-model {
   flex: 1;
-  color: #333;
+  color: var(--ink);
   font-family: monospace;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .rank-score {
-  color: #666;
+  color: var(--muted);
   font-size: 13px;
   font-family: monospace;
 }
@@ -74,52 +79,53 @@
 .stage2 .tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
 .stage2 .tab {
-  padding: 8px 16px;
-  background: #ffffff;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px 6px 0 0;
-  color: #666;
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--muted);
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  box-shadow: var(--shadow-soft);
 }
 
 .stage2 .tab:hover {
-  background: #f0f0f0;
-  color: #333;
-  border-color: #4a90e2;
+  background: #f7f9ff;
+  color: var(--ink);
+  border-color: var(--accent);
 }
 
 .stage2 .tab.active {
-  background: #ffffff;
-  color: #4a90e2;
-  border-color: #4a90e2;
-  border-bottom-color: #ffffff;
-  font-weight: 600;
+  background: #e8f0ff;
+  color: var(--accent-strong);
+  border-color: var(--accent);
+  font-weight: 700;
 }
 
 .stage2 .tab-content {
-  background: #ffffff;
+  background: #f8faff;
   padding: 16px;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
   margin-bottom: 20px;
 }
 
 .ranking-model {
-  color: #888;
+  color: var(--muted);
   font-size: 12px;
   font-family: monospace;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .ranking-content {
-  color: #333;
+  color: var(--ink);
   line-height: 1.6;
   font-size: 14px;
 }
